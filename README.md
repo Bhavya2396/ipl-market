@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# IPL Market
+
+A prediction platform for IPL 2025 matches where users can make predictions and compete on the leaderboard.
+
+## Features
+
+- User authentication with Google
+- Match management
+- Prediction markets
+- User predictions
+- Leaderboard system
+- Real-time updates
+
+## Tech Stack
+
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- Prisma
+- PostgreSQL
+- NextAuth.js
+- Cypress for testing
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL
+- Google OAuth credentials
+
+### Local Development
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/ipl-market.git
+   cd ipl-market
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Edit `.env.local` with your credentials.
+
+4. Set up the database:
+   ```bash
+   npm run prisma:generate
+   npm run prisma:push
+   npm run prisma:seed
+   ```
+
+5. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+### Deployment
+
+1. Push your code to GitHub
+
+2. Connect your repository to Vercel:
+   - Go to [Vercel](https://vercel.com)
+   - Import your repository
+   - Configure environment variables from `.env.example`
+   - Deploy!
+
+3. Set up the database:
+   - Create a PostgreSQL database on Vercel
+   - Update the `DATABASE_URL` in Vercel environment variables
+   - Run database migrations:
+     ```bash
+     npm run prisma:push
+     npm run prisma:seed
+     ```
+
+## Testing
+
+### Component Tests
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run cypress:component
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### E2E Tests
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run cypress:e2e
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Contributing
 
-## Learn More
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-To learn more about Next.js, take a look at the following resources:
+## License
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the MIT License - see the LICENSE file for details.

@@ -12,3 +12,229 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id            String       @id @default(cuid())
+  walletAddress String       @unique
+  username      String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  predictions   Prediction[]
+  totalPoints   Int          @default(0)
+  totalPredictions Int       @default(0)
+  correctPredictions Int     @default(0)
+  successRate   Float        @default(0)
+  rank          Int?
+
+  @@index([walletAddress])
+  @@index([rank])
+}
+
+model Team {
+  id            String       @id @default(cuid())
+  name          String       @unique
+  shortName     String       @unique
+  logo          String?
+  players       Player[]
+  homeMatches   Match[]      @relation("HomeTeam")
+  awayMatches   Match[]      @relation("AwayTeam")
+  innings       Innings[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([name])
+}
+
+model Player {
+  id            String       @id @default(cuid())
+  name          String
+  shortName     String
+  role          PlayerRole
+  isPlaying     Boolean      @default(true)
+  team          Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId        String
+  statistics    PlayerStats?
+  performances  PlayerPerformance[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([teamId])
+  @@index([name])
+}
+
+model PlayerStats {
+  id            String       @id @default(cuid())
+  playerId      String       @unique
+  player        Player       @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  matches       Int          @default(0)
+  runs          Int          @default(0)
+  wickets       Int          @default(0)
+  catches       Int          @default(0)
+  stumpings     Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model PlayerPerformance {
+  id            String       @id @default(cuid())
+  playerId      String
+  player        Player       @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  matchId       String
+  match         Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  runs          Int          @default(0)
+  wickets       Int          @default(0)
+  catches       Int          @default(0)
+  stumpings     Int          @default(0)
+  isHighestRunScorer Boolean @default(false)
+  isHighestWicketTaker Boolean @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([playerId])
+  @@index([matchId])
+}
+
+model Match {
+  id            String       @id @default(cuid())
+  date          DateTime
+  status        MatchStatus  @default(UPCOMING)
+  homeTeam      Team         @relation("HomeTeam", fields: [homeTeamId], references: [id], onDelete: Cascade)
+  homeTeamId    String
+  awayTeam      Team         @relation("AwayTeam", fields: [awayTeamId], references: [id], onDelete: Cascade)
+  awayTeamId    String
+  venue         String
+  city          String
+  details       MatchDetails?
+  markets       Market[]
+  predictions   Prediction[]
+  performances  PlayerPerformance[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([date])
+  @@index([status])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+}
+
+model MatchDetails {
+  id            String       @id @default(cuid())
+  matchId       String       @unique
+  match         Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  tossWinner    String?
+  tossDecision  String?
+  innings       Innings[]
+  manOfTheMatch String?
+  highestTeamScore Int?
+  crossed200Runs Boolean?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Innings {
+  id            String       @id @default(cuid())
+  matchDetailsId String
+  matchDetails   MatchDetails @relation(fields: [matchDetailsId], references: [id], onDelete: Cascade)
+  teamId        String
+  team          Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  inningsNumber Int          // 1 for first innings, 2 for second innings
+  runs          Int          @default(0)
+  wickets       Int          @default(0)
+  overs         Float        @default(0)
+  extras        Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([matchDetailsId])
+  @@index([teamId])
+  @@unique([matchDetailsId, inningsNumber])
+}
+
+model Market {
+  id            String       @id @default(cuid())
+  match         Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchId       String
+  type          MarketType
+  title         String
+  description   String
+  totalVolume   Float        @default(0)
+  status        MarketStatus @default(ACTIVE)
+  options       MarketOption[]
+  predictions   Prediction[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([matchId])
+  @@index([status])
+}
+
+model MarketOption {
+  id            String       @id @default(cuid())
+  marketId      String
+  market        Market       @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  label         String
+  odds          Float        @db.Decimal(10, 2)
+  volume        Float        @default(0)
+  predictions   Prediction[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([marketId])
+}
+
+model Prediction {
+  id              String       @id @default(cuid())
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchId         String
+  match           Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  marketId        String
+  market          Market       @relation(fields: [marketId], references: [id], onDelete: Cascade)
+  optionId        String
+  option          MarketOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  points          Int          @default(0)
+  status          PredictionStatus @default(ACTIVE)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([matchId])
+  @@index([marketId])
+  @@index([optionId])
+  @@index([status])
+}
+
+enum MatchStatus {
+  UPCOMING
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum MarketType {
+  MATCH_WINNER
+  HIGHEST_RUN_SCORER
+  HIGHEST_WICKET_TAKER
+  TWO_HUNDRED_RUNS_BARRIER
+}
+
+enum MarketStatus {
+  ACTIVE
+  CLOSED
+  RESOLVED
+  CANCELLED
+}
+
+enum PredictionStatus {
+  ACTIVE
+  WON
+  LOST
+  CANCELLED
+}
+
+enum PlayerRole {
+  BATSMAN
+  BOWLER
+  ALL_ROUNDER
+  WICKET_KEEPER
+}
