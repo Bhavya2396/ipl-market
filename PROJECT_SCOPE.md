@@ -211,14 +211,14 @@ The IPL Market is a prediction platform for IPL 2025 matches where users can mak
 
 ### 1. User Engagement
 - Active users count
-- Prediction submission rate
-- Return user rate
+   - Prediction submission rate
+   - Return user rate
 - User satisfaction score
 
 ### 2. Technical Performance
-- Page load time < 2s
-- API response time < 200ms
-- 99.9% uptime
+   - Page load time < 2s
+   - API response time < 200ms
+   - 99.9% uptime
 - Error rate < 0.1%
 
 ### 3. Business Metrics
