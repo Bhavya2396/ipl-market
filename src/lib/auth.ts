@@ -1,14 +1,15 @@
-import type { NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "./prisma";
-import type { JWT } from "next-auth/jwt";
-import type { Session } from "next-auth";
+import NextAuth from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import { prisma } from "./prisma"
+import type { JWT } from "next-auth/jwt"
+import type { Session } from "next-auth"
+import type { NextAuthConfig } from "next-auth"
 
-export const authOptions: NextAuthOptions = {
+export const authConfig: NextAuthConfig = {
   adapter: PrismaAdapter(prisma),
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
   },
   pages: {
     signIn: "/auth/signin",
@@ -38,4 +39,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
   },
-}; 
+}
+
+export const { auth, handlers } = NextAuth(authConfig) 
