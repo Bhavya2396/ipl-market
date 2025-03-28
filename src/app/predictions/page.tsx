@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,9 +8,6 @@ import { format } from "date-fns";
 
 interface Prediction {
   id: string;
-  status: string;
-  points: number;
-  createdAt: string;
   market: {
     title: string;
     type: string;
@@ -23,6 +20,9 @@ interface Prediction {
       name: string;
     };
   };
+  status: "ACTIVE" | "WON" | "LOST" | "CANCELLED";
+  points: number;
+  createdAt: string;
 }
 
 export default function PredictionsPage() {
@@ -65,8 +65,50 @@ export default function PredictionsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">My Predictions</h1>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Your Predictions</h1>
+        <p className="mt-2 text-lg text-gray-600">
+          Track your prediction history and performance
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Predictions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {predictions.map((prediction) => (
+              <div
+                key={prediction.id}
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+              >
+                <div className="space-y-1">
+                  <p className="font-medium">{prediction.market.title}</p>
+                  <p className="text-sm text-gray-500">
+                    {prediction.match.homeTeam.name} vs {prediction.match.awayTeam.name}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <Badge
+                    className={`${statusColors[prediction.status]} text-white`}
+                  >
+                    {prediction.status}
+                  </Badge>
+                  <div className="text-right">
+                    <p className="font-bold">{prediction.points} points</p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(prediction.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>

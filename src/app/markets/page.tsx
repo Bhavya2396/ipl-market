@@ -1,3 +1,5 @@
+"use client";
+
 export default function MarketsPage() {
   return (
     <div className="space-y-8">

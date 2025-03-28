@@ -3,6 +3,14 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+interface MarketTypeStats {
+  total: number;
+  won: number;
+  points: number;
+  successRate?: number;
+}
 
 export async function GET(request: Request) {
   try {
@@ -93,6 +101,7 @@ export async function GET_USER_STATS(userId: string) {
           total: 0,
           won: 0,
           points: 0,
+          successRate: 0,
         };
       }
       acc[type].total++;
@@ -101,7 +110,7 @@ export async function GET_USER_STATS(userId: string) {
       }
       acc[type].points += prediction.points;
       return acc;
-    }, {} as Record<string, { total: number; won: number; points: number }>);
+    }, {} as Record<string, MarketTypeStats>);
 
     // Calculate success rate by market type
     Object.keys(marketTypeStats).forEach(type => {

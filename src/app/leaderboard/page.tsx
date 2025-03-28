@@ -68,8 +68,13 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Leaderboard</h1>
+    <div className="container py-8 space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Leaderboard</h1>
+        <p className="mt-2 text-lg text-gray-600">
+          See how you stack up against other predictors
+        </p>
+      </div>
 
       {/* Time Range Tabs */}
       <Tabs value={timeRange} onValueChange={setTimeRange} className="mb-8">
@@ -82,23 +87,22 @@ export default function LeaderboardPage() {
 
       {/* User Position Card */}
       {userPosition && (
-        <Card className="mb-8 bg-blue-50">
+        <Card>
           <CardHeader>
             <CardTitle>Your Position</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Rank</p>
-                <p className="text-2xl font-bold">#{userPosition.rank}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Total Points</p>
-                <p className="text-2xl font-bold">{userPosition.totalPoints}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Success Rate</p>
-                <p className="text-2xl font-bold">{userPosition.successRate}%</p>
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+              <div className="flex items-center space-x-4">
+                <Badge variant="outline" className="w-8 h-8 flex items-center justify-center">
+                  {userPosition.rank}
+                </Badge>
+                <div>
+                  <p className="font-medium">Your Position</p>
+                  <p className="text-sm text-gray-500">
+                    {userPosition.totalPoints} total points
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
