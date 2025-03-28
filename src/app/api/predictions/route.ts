@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
-    const authSession = await auth();
-    if (!authSession?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
     const { marketId, matchId, optionId } = await request.json();
@@ -48,7 +52,7 @@ export async function POST(request: Request) {
     // Create prediction
     const prediction = await prisma.prediction.create({
       data: {
-        userId: authSession.user.id,
+        userId: session.user.id,
         marketId,
         matchId,
         optionId,
@@ -69,9 +73,12 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const authSession = await auth();
-    if (!authSession?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -81,7 +88,7 @@ export async function GET(request: Request) {
     const skip = (page - 1) * limit;
 
     const where = {
-      userId: authSession.user.id,
+      userId: session.user.id,
       ...(status && { status }),
     };
 

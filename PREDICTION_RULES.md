@@ -17,6 +17,7 @@ The IPL 2025 Predictions Market allows users to make predictions on various aspe
 - **Options**: Both teams playing in the match
 - **Points**: 1 point for correct prediction
 - **Resolution**: Based on final match result
+- **Special Cases**: No points awarded for abandoned/cancelled matches
 
 ### 2. Highest Run Scorer (2 points)
 - **Description**: Predict the player who will score the most runs in the match
@@ -25,6 +26,7 @@ The IPL 2025 Predictions Market allows users to make predictions on various aspe
 - **Points**: 2 points for correct prediction
 - **Resolution**: Based on final batting statistics
 - **Tiebreaker**: In case of a tie, points are shared equally
+- **Special Cases**: No points if match is abandoned before completion
 
 ### 3. Highest Wicket Taker (2 points)
 - **Description**: Predict the bowler who will take the most wickets in the match
@@ -33,6 +35,7 @@ The IPL 2025 Predictions Market allows users to make predictions on various aspe
 - **Points**: 2 points for correct prediction
 - **Resolution**: Based on final bowling statistics
 - **Tiebreaker**: In case of a tie, points are shared equally
+- **Special Cases**: No points if match is abandoned before completion
 
 ### 4. 200 Runs Barrier (1 point)
 - **Description**: Predict if either team will score 200 or more runs
@@ -40,115 +43,115 @@ The IPL 2025 Predictions Market allows users to make predictions on various aspe
 - **Options**: Yes/No
 - **Points**: 1 point for correct prediction
 - **Resolution**: Based on highest team score in the match
+- **Special Cases**: No points if match is abandoned before completion
 
 ## Rules & Guidelines
 
 ### General Rules
-1. Predictions must be made before the match starts
-2. Once a match begins, no new predictions can be made
-3. Users can only make one prediction per market per match
+1. All predictions must be made before match start time
+2. Once a match begins, prediction markets are automatically closed
+3. Users can make one prediction per market per match
 4. Points are awarded only for correct predictions
 5. No points are deducted for incorrect predictions
+6. Users must be connected with their wallet to make predictions
+7. Predictions cannot be modified after submission
 
 ### Market Availability
-1. Markets open 24 hours before match start
-2. Markets close at match start time
-3. Results are updated within 24 hours of match completion
+1. Markets open 24 hours before scheduled match start
+2. Markets close automatically at match start time
+3. Results are updated within 30 minutes of match completion
+4. Markets may be cancelled in case of match abandonment
 
-### Points Calculation
-1. Match Winner: 1 point
-2. Highest Run Scorer: 2 points
-3. Highest Wicket Taker: 2 points
-4. 200 Runs Barrier: 1 point
+### Points System
+1. Total points per match: Up to 6 points
+   - Match Winner: 1 point
+   - Highest Run Scorer: 2 points
+   - Highest Wicket Taker: 2 points
+   - 200 Runs Barrier: 1 point
+2. Bonus points may be awarded for special achievements
+3. Points are credited within 1 hour of market resolution
 
-### Leaderboard
-1. Points are cumulative across all matches
-2. Leaderboard is updated daily
-3. Ties are resolved by:
-   - Total number of correct predictions
-   - Success rate (correct predictions / total predictions)
-   - Time of first prediction
+### Leaderboard System
+1. Global Rankings
+   - Based on total points accumulated
+   - Updated in real-time after each market resolution
+   - Tiebreaker: Higher success rate
 
-### Data Sources
-1. Match Schedule: Official IPL website
-2. Team Squads: Official team announcements
-3. Match Results: Official match reports
-4. Player Statistics: Official match statistics
+2. Time-based Rankings
+   - Daily leaderboard
+   - Weekly leaderboard
+   - Monthly leaderboard
+   - Season leaderboard
 
-### Resolution Process
-1. Match Results:
-   - Updated within 24 hours of match completion
-   - Verified against official sources
-   - Includes full scorecard and statistics
+3. Category Rankings
+   - Match Winner predictions
+   - Player performance predictions
+   - Special achievement predictions
 
-2. Prediction Resolution:
-   - Automated where possible
-   - Manual verification for complex scenarios
-   - Appeals process for disputed results
-
-### User Guidelines
-1. Users must be registered to make predictions
-2. One account per user
-3. Predictions cannot be modified after submission
-4. Users can view their prediction history
-5. Leaderboard position updates daily
+### User Statistics
+1. Total Points
+2. Success Rate
+3. Prediction History
+4. Market-wise Performance
+5. Recent Activity
 
 ## Technical Implementation
 
-### Database Schema
-1. Matches
-   - Match details
-   - Teams
-   - Venue
-   - Date/Time
-   - Status
+### Market States
+1. UPCOMING
+   - Market is open for predictions
+   - All options available
+   - Users can submit predictions
 
-2. Markets
-   - Market type
-   - Options
-   - Status
-   - Resolution criteria
+2. LIVE
+   - Market is closed for new predictions
+   - Existing predictions locked
+   - Match in progress
 
-3. Predictions
-   - User
-   - Market
-   - Selected option
-   - Points earned
-   - Status
+3. RESOLVED
+   - Results calculated
+   - Points distributed
+   - Available for review
 
-4. Results
-   - Match statistics
-   - Player performance
-   - Market resolution
+4. CANCELLED
+   - Market invalidated
+   - No points awarded
+   - Users notified
 
-### API Endpoints
-1. Match Management
-   - GET /api/matches
-   - GET /api/matches/[id]
-   - GET /api/matches/upcoming
+### Resolution Process
+1. Automatic Resolution
+   - Match results processed automatically
+   - Points calculated based on official statistics
+   - Results verified before finalization
 
-2. Market Management
-   - GET /api/markets
-   - GET /api/markets/match/[id]
-   - GET /api/markets/active
+2. Manual Resolution (if needed)
+   - Admin review for special cases
+   - Verification of complex scenarios
+   - Final decision binding
 
-3. Prediction Management
-   - POST /api/predictions
-   - GET /api/predictions/user/[id]
-   - GET /api/predictions/match/[id]
+### Error Handling
+1. Match Cancellation
+   - All markets cancelled
+   - Users notified
+   - No points deducted
 
-4. Leaderboard
-   - GET /api/leaderboard
-   - GET /api/leaderboard/user/[id]
+2. Player Unavailability
+   - Player-specific markets cancelled
+   - Alternative markets may be offered
+   - Users notified of changes
 
-## Maintenance & Updates
-1. Daily data synchronization
-2. Weekly leaderboard updates
-3. Monthly performance reports
-4. Quarterly system maintenance
+3. Technical Issues
+   - Grace period for system errors
+   - Support ticket system
+   - Fair resolution policy
 
 ## Support & Contact
 For any queries or issues:
 - Email: support@iplmarket.com
 - Help Center: help.iplmarket.com
-- Twitter: @IPLMarket 
+- Twitter: @IPLMarket
+
+## Updates & Changes
+- Rules may be updated for clarity or fairness
+- Users will be notified of significant changes
+- All updates will be documented and timestamped 

@@ -1,7 +1,6 @@
 import React from 'react'
 import { render as rtlRender } from '@testing-library/react'
 import { SessionProvider } from 'next-auth/react'
-import { MatchStatus } from '@prisma/client'
 
 function render(ui: React.ReactElement, { ...renderOptions } = {}) {
   function Wrapper({ children }: { children: React.ReactNode }) {
@@ -27,30 +26,19 @@ export const mockUser = {
 
 export const mockMatch = {
   id: '1',
-  date: new Date(),
-  status: MatchStatus.UPCOMING,
+  date: new Date().toISOString(),
+  status: 'UPCOMING',
   venue: 'Test Stadium',
   city: 'Test City',
-  homeTeamId: '1',
-  awayTeamId: '2',
-  startTime: new Date(),
-  createdAt: new Date(),
-  updatedAt: new Date(),
   homeTeam: {
     id: '1',
     name: 'Team A',
     shortName: 'TA',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    logo: null,
   },
   awayTeam: {
     id: '2',
     name: 'Team B',
     shortName: 'TB',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    logo: null,
   },
 }
 

@@ -1,106 +1,98 @@
-# IPL Market
+# IPL Market - IPL 2025 Prediction Platform
 
-A prediction platform for IPL 2025 matches where users can make predictions and compete on the leaderboard.
+A Next.js-based prediction platform for IPL 2025 matches where users can make predictions on various aspects of matches and earn points based on their accuracy.
 
 ## Features
 
-- User authentication with Google
-- Match management
-- Prediction markets
-- User predictions
-- Leaderboard system
-- Real-time updates
+- 🏏 Real-time match predictions
+- 📊 Multiple prediction markets (Match Winner, Highest Run Scorer, etc.)
+- 🏆 Points-based leaderboard system
+- 👤 Wallet-based authentication
+- 📱 Responsive design with modern UI
 
 ## Tech Stack
 
-- Next.js 14
-- TypeScript
-- Tailwind CSS
-- Prisma
-- PostgreSQL
-- NextAuth.js
-- Cypress for testing
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Database**: PostgreSQL (Neon)
+- **ORM**: Prisma
+- **Authentication**: NextAuth.js
+- **Testing**: Jest + Cypress
+- **Deployment**: Vercel
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 18+
-- PostgreSQL
-- Google OAuth credentials
-
-### Local Development
-
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/ipl-market.git
-   cd ipl-market
-   ```
+```bash
+git clone https://github.com/yourusername/ipl-market.git
+cd ipl-market
+```
 
 2. Install dependencies:
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
 3. Set up environment variables:
-   ```bash
-   cp .env.example .env.local
-   ```
-   Edit `.env.local` with your credentials.
+```bash
+cp .env.example .env
+# Update .env with your values
+```
 
 4. Set up the database:
-   ```bash
-   npm run prisma:generate
-   npm run prisma:push
-   npm run prisma:seed
-   ```
+```bash
+npm run prisma:generate
+npm run prisma:push
+npm run prisma:seed
+```
 
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
+5. Run the development server:
+```bash
+npm run dev
+```
 
-### Deployment
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-1. Push your code to GitHub
+## Development Scripts
 
-2. Connect your repository to Vercel:
-   - Go to [Vercel](https://vercel.com)
-   - Import your repository
-   - Configure environment variables from `.env.example`
-   - Deploy!
-
-3. Set up the database:
-   - Create a PostgreSQL database on Vercel
-   - Update the `DATABASE_URL` in Vercel environment variables
-   - Run database migrations:
-     ```bash
-     npm run prisma:push
-     npm run prisma:seed
-     ```
+- `npm run dev` - Start development server
+- `npm run build` - Build production bundle
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run prisma:generate` - Generate Prisma client
+- `npm run prisma:push` - Push schema to database
+- `npm run prisma:seed` - Seed the database
 
 ## Testing
 
-### Component Tests
+- Run unit tests: `npm test`
+- Run Cypress component tests: `npm run test:component`
+- Run Cypress E2E tests: `npm run test:e2e`
 
-```bash
-npm run cypress:component
+## Project Structure
+
 ```
-
-### E2E Tests
-
-```bash
-npm run cypress:e2e
+src/
+├── app/                    # Next.js app directory
+│   ├── (auth)/            # Authentication routes
+│   ├── (dashboard)/       # Protected dashboard routes
+│   ├── api/               # API routes
+│   └── page.tsx           # Home page
+├── components/            # Reusable components
+├── hooks/                # Custom hooks
+├── lib/                  # Utility functions
+└── types/               # TypeScript types
 ```
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
