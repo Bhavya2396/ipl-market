@@ -15,7 +15,10 @@ datasource db {
 
 model User {
   id            String       @id @default(cuid())
-  walletAddress String       @unique
+  email         String       @unique
+  name          String?
+  image         String?
+  walletAddress String?      @unique
   username      String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -26,6 +29,7 @@ model User {
   successRate   Float        @default(0)
   rank          Int?
 
+  @@index([email])
   @@index([walletAddress])
   @@index([rank])
 }
@@ -173,7 +177,7 @@ model MarketOption {
   marketId      String
   market        Market       @relation(fields: [marketId], references: [id], onDelete: Cascade)
   label         String
-  odds          Float        @db.Decimal(10, 2)
+  odds          Decimal      @db.Decimal(10, 2)
   volume        Float        @default(0)
   predictions   Prediction[]
   createdAt     DateTime     @default(now())
