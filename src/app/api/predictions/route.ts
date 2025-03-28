@@ -1,24 +1,84 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const session = await auth();
+
+    if (!session) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
-    const { marketId, matchId, optionId } = await request.json();
+    const predictions = await prisma.prediction.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      include: {
+        match: {
+          include: {
+            homeTeam: true,
+            awayTeam: true,
+          },
+        },
+        market: true,
+        option: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-    // Validate market is active
+    return NextResponse.json(predictions);
+  } catch (error) {
+    console.error("Predictions error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch predictions" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const session = await auth();
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { matchId, marketId, optionId } = body;
+
+    // Validate required fields
+    if (!matchId || !marketId || !optionId) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Check if match is still open for predictions
+    const match = await prisma.match.findUnique({
+      where: { id: matchId },
+    });
+
+    if (!match || match.status !== "UPCOMING") {
+      return NextResponse.json(
+        { error: "Match is not open for predictions" },
+        { status: 400 }
+      );
+    }
+
+    // Check if market is still active
     const market = await prisma.market.findUnique({
       where: { id: marketId },
-      include: { options: true },
     });
 
     if (!market || market.status !== "ACTIVE") {
@@ -28,108 +88,31 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate match is upcoming
-    const match = await prisma.match.findUnique({
-      where: { id: matchId },
-    });
-
-    if (!match || match.status !== "UPCOMING") {
-      return NextResponse.json(
-        { error: "Match is not upcoming" },
-        { status: 400 }
-      );
-    }
-
-    // Validate option exists
-    const option = market.options.find((opt) => opt.id === optionId);
-    if (!option) {
-      return NextResponse.json(
-        { error: "Invalid prediction option" },
-        { status: 400 }
-      );
-    }
-
     // Create prediction
     const prediction = await prisma.prediction.create({
       data: {
         userId: session.user.id,
-        marketId,
         matchId,
+        marketId,
         optionId,
-        status: "ACTIVE",
-        points: 0,
+      },
+      include: {
+        match: {
+          include: {
+            homeTeam: true,
+            awayTeam: true,
+          },
+        },
+        market: true,
+        option: true,
       },
     });
 
     return NextResponse.json(prediction);
   } catch (error) {
-    console.error("Error creating prediction:", error);
+    console.error("Prediction creation error:", error);
     return NextResponse.json(
       { error: "Failed to create prediction" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET(request: Request) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const skip = (page - 1) * limit;
-
-    const where = {
-      userId: session.user.id,
-      ...(status && { status }),
-    };
-
-    const [predictions, total] = await Promise.all([
-      prisma.prediction.findMany({
-        where,
-        include: {
-          market: {
-            include: {
-              options: true,
-            },
-          },
-          match: {
-            include: {
-              homeTeam: true,
-              awayTeam: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        skip,
-        take: limit,
-      }),
-      prisma.prediction.count({ where }),
-    ]);
-
-    return NextResponse.json({
-      predictions,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching predictions:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch predictions" },
       { status: 500 }
     );
   }

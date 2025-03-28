@@ -1,108 +1,37 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const skip = (page - 1) * limit;
-    const timeRange = searchParams.get("timeRange") || "all"; // all, week, month
+    const session = await auth();
 
-    // Get date range for filtering
-    const now = new Date();
-    let startDate = new Date(0); // Beginning of time
-    if (timeRange === "week") {
-      startDate = new Date(now.setDate(now.getDate() - 7));
-    } else if (timeRange === "month") {
-      startDate = new Date(now.setMonth(now.getMonth() - 1));
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    // Get user rankings with statistics
-    const [users, total] = await Promise.all([
-      prisma.user.findMany({
-        select: {
-          id: true,
-          username: true,
-          totalPoints: true,
-          successRate: true,
-          rank: true,
-          predictions: {
-            where: {
-              createdAt: {
-                gte: startDate,
-              },
-            },
-            select: {
-              status: true,
-              points: true,
-            },
-          },
-        },
-        orderBy: [
-          { totalPoints: "desc" },
-          { successRate: "desc" },
-        ],
-        skip,
-        take: limit,
-      }),
-      prisma.user.count(),
-    ]);
-
-    // Calculate additional statistics
-    const usersWithStats = users.map(user => {
-      const recentPredictions = user.predictions;
-      const won = recentPredictions.filter(p => p.status === "WON").length;
-      const total = recentPredictions.length;
-      const points = recentPredictions.reduce((sum, p) => sum + p.points, 0);
-
-      return {
-        ...user,
-        recentStats: {
-          predictions: total,
-          won,
-          successRate: total > 0 ? Math.round((won / total) * 100) : 0,
-          points,
-        },
-      };
-    });
-
-    // Get current user's position if logged in
-    const session = await getServerSession(authOptions);
-    let userPosition = null;
-    if (session?.user?.id) {
-      const userRank = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: {
-          rank: true,
-          totalPoints: true,
-          successRate: true,
-        },
-      });
-      if (userRank) {
-        userPosition = {
-          rank: userRank.rank,
-          totalPoints: userRank.totalPoints,
-          successRate: userRank.successRate,
-        };
-      }
-    }
-
-    return NextResponse.json({
-      users: usersWithStats,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+    const users = await prisma.user.findMany({
+      orderBy: {
+        totalPoints: "desc",
       },
-      userPosition,
-      timeRange,
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        totalPoints: true,
+        totalPredictions: true,
+        correctPredictions: true,
+        successRate: true,
+        rank: true,
+      },
     });
+
+    return NextResponse.json(users);
   } catch (error) {
-    console.error("Error fetching leaderboard:", error);
+    console.error("Leaderboard error:", error);
     return NextResponse.json(
       { error: "Failed to fetch leaderboard" },
       { status: 500 }
