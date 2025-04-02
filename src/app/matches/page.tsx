@@ -1,30 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MatchCard } from "@/components/match-card";
-import { Match, MatchStatus, Team } from "@prisma/client";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/hooks/use-auth";
+import { format } from "date-fns";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Clock } from "lucide-react";
 
-type MatchWithTeams = Match & {
-  homeTeam: Team;
-  awayTeam: Team;
-};
+interface Match {
+  id: string;
+  date: string;
+  status: string;
+  homeTeam: {
+    id: string;
+    name: string;
+    shortName: string;
+    logo: string;
+  };
+  awayTeam: {
+    id: string;
+    name: string;
+    shortName: string;
+    logo: string;
+  };
+  venue: string;
+  city: string;
+  markets: {
+    id: string;
+    title: string;
+    type: string;
+    description: string;
+    options: {
+      id: string;
+      title: string;
+      odds: number;
+    }[];
+  }[];
+}
 
 export default function MatchesPage() {
-  const [matches, setMatches] = useState<MatchWithTeams[]>([]);
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated } = useAuth(false);
 
   useEffect(() => {
+    if (!session) {
+      router.push("/auth/signin");
+      return;
+    }
     fetchMatches();
-  }, []);
+  }, [session, router]);
 
   const fetchMatches = async () => {
     try {
-      setLoading(true);
       const response = await fetch("/api/matches");
       if (!response.ok) {
         throw new Error("Failed to fetch matches");
@@ -38,14 +71,15 @@ export default function MatchesPage() {
     }
   };
 
-  const filterMatches = (status: MatchStatus | "ALL") => {
-    if (status === "ALL") return matches;
-    return matches.filter((match) => match.status === status);
+  const isMarketClosed = (matchDate: string) => {
+    const matchDateTime = new Date(matchDate);
+    const oneHourBeforeMatch = new Date(matchDateTime.getTime() - 60 * 60 * 1000);
+    return new Date() >= oneHourBeforeMatch;
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
       </div>
     );
@@ -53,61 +87,85 @@ export default function MatchesPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-red-500">{error}</div>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-red-500 mb-4">Error: {error}</div>
+        <Button onClick={() => fetchMatches()}>Try Again</Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Matches</h1>
-        {isAuthenticated && (
-          <Button>Make Prediction</Button>
-        )}
+    <div className="container py-8 space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Today's Matches</h1>
+          <p className="mt-2 text-lg text-gray-600">
+            Make your predictions for today's matches
+          </p>
+        </div>
       </div>
 
-      <Tabs defaultValue="ALL" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="ALL">All Matches</TabsTrigger>
-          <TabsTrigger value="UPCOMING">Upcoming</TabsTrigger>
-          <TabsTrigger value="LIVE">Live</TabsTrigger>
-          <TabsTrigger value="COMPLETED">Completed</TabsTrigger>
-        </TabsList>
+      <div className="grid gap-6 md:grid-cols-2">
+        {matches.map((match) => {
+          const marketClosed = isMarketClosed(match.date);
+          return (
+            <Card key={match.id}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-xl">Match Details</CardTitle>
+                  <Badge variant={marketClosed ? "destructive" : "default"}>
+                    {marketClosed ? "Closed" : "Open"}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center space-x-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-medium">{match.homeTeam.name}</p>
+                      <p className="text-sm text-gray-500">{match.homeTeam.shortName}</p>
+                    </div>
+                    <div className="text-2xl font-bold text-gray-500">vs</div>
+                    <div className="text-center">
+                      <p className="text-2xl font-medium">{match.awayTeam.name}</p>
+                      <p className="text-sm text-gray-500">{match.awayTeam.shortName}</p>
+                    </div>
+                  </div>
+                  <div className="text-center text-sm text-gray-500">
+                    <p>{format(new Date(match.date), "MMM d, yyyy h:mm a")}</p>
+                    <p>{match.venue}, {match.city}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold">Available Markets:</h3>
+                    <ul className="space-y-1">
+                      {match.markets.map((market) => (
+                        <li key={market.id} className="text-sm">
+                          • {market.title} - {market.description}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <Link href={`/matches/${match.id}/predictions`} className="block">
+                    <Button className="w-full" disabled={marketClosed}>
+                      {marketClosed ? "Markets Closed" : "Make Predictions"}
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-        <TabsContent value="ALL" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filterMatches("ALL").map((match) => (
-              <MatchCard key={match.id} match={match} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="UPCOMING" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filterMatches("UPCOMING").map((match) => (
-              <MatchCard key={match.id} match={match} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="LIVE" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filterMatches("LIVE").map((match) => (
-              <MatchCard key={match.id} match={match} />
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="COMPLETED" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filterMatches("COMPLETED").map((match) => (
-              <MatchCard key={match.id} match={match} />
-            ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+      {matches.length === 0 && (
+        <div className="text-center py-12">
+          <Clock className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-semibold text-gray-900">No matches today</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            There are no matches scheduled for today. Check back later for upcoming matches.
+          </p>
+        </div>
+      )}
     </div>
   );
 } 

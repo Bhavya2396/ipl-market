@@ -3,6 +3,11 @@
 ## Overview
 The IPL 2025 Predictions Market allows users to make predictions on various aspects of IPL 2025 matches. Users can earn points based on the accuracy of their predictions, which contribute to their overall ranking on the leaderboard.
 
+## Authentication
+- Google OAuth for account creation and login
+- No wallet integration required
+- No monetary transactions involved
+
 ## Match Schedule
 - Total Matches: 74
 - Season Duration: March-May 2025
@@ -13,7 +18,7 @@ The IPL 2025 Predictions Market allows users to make predictions on various aspe
 
 ### 1. Match Winner (1 point)
 - **Description**: Predict the winning team of the match
-- **Timing**: Available until match start
+- **Timing**: Available until 1 hour before match start
 - **Options**: Both teams playing in the match
 - **Points**: 1 point for correct prediction
 - **Resolution**: Based on final match result
@@ -21,7 +26,7 @@ The IPL 2025 Predictions Market allows users to make predictions on various aspe
 
 ### 2. Highest Run Scorer (2 points)
 - **Description**: Predict the player who will score the most runs in the match
-- **Timing**: Available until match start
+- **Timing**: Available until 1 hour before match start
 - **Options**: Players from both teams' playing XI
 - **Points**: 2 points for correct prediction
 - **Resolution**: Based on final batting statistics
@@ -30,7 +35,7 @@ The IPL 2025 Predictions Market allows users to make predictions on various aspe
 
 ### 3. Highest Wicket Taker (2 points)
 - **Description**: Predict the bowler who will take the most wickets in the match
-- **Timing**: Available until match start
+- **Timing**: Available until 1 hour before match start
 - **Options**: Players from both teams' playing XI
 - **Points**: 2 points for correct prediction
 - **Resolution**: Based on final bowling statistics
@@ -39,7 +44,7 @@ The IPL 2025 Predictions Market allows users to make predictions on various aspe
 
 ### 4. 200 Runs Barrier (1 point)
 - **Description**: Predict if either team will score 200 or more runs
-- **Timing**: Available until match start
+- **Timing**: Available until 1 hour before match start
 - **Options**: Yes/No
 - **Points**: 1 point for correct prediction
 - **Resolution**: Based on highest team score in the match
@@ -48,17 +53,17 @@ The IPL 2025 Predictions Market allows users to make predictions on various aspe
 ## Rules & Guidelines
 
 ### General Rules
-1. All predictions must be made before match start time
-2. Once a match begins, prediction markets are automatically closed
+1. All predictions must be made before 1 hour of match start time
+2. Users can only view and make predictions for matches scheduled for the current day
 3. Users can make one prediction per market per match
 4. Points are awarded only for correct predictions
 5. No points are deducted for incorrect predictions
-6. Users must be connected with their wallet to make predictions
+6. Users must be logged in with Google to make predictions
 7. Predictions cannot be modified after submission
 
 ### Market Availability
-1. Markets open 24 hours before scheduled match start
-2. Markets close automatically at match start time
+1. Markets are only visible for matches scheduled for the current day
+2. Markets close automatically 1 hour before match start time
 3. Results are updated within 30 minutes of match completion
 4. Markets may be cancelled in case of match abandonment
 
@@ -68,8 +73,7 @@ The IPL 2025 Predictions Market allows users to make predictions on various aspe
    - Highest Run Scorer: 2 points
    - Highest Wicket Taker: 2 points
    - 200 Runs Barrier: 1 point
-2. Bonus points may be awarded for special achievements
-3. Points are credited within 1 hour of market resolution
+2. Points are credited within 1 hour of market resolution
 
 ### Leaderboard System
 1. Global Rankings
@@ -82,11 +86,6 @@ The IPL 2025 Predictions Market allows users to make predictions on various aspe
    - Weekly leaderboard
    - Monthly leaderboard
    - Season leaderboard
-
-3. Category Rankings
-   - Match Winner predictions
-   - Player performance predictions
-   - Special achievement predictions
 
 ### User Statistics
 1. Total Points
@@ -103,10 +102,10 @@ The IPL 2025 Predictions Market allows users to make predictions on various aspe
    - All options available
    - Users can submit predictions
 
-2. LIVE
-   - Market is closed for new predictions
+2. CLOSED
+   - Market closed 1 hour before match
    - Existing predictions locked
-   - Match in progress
+   - No new predictions allowed
 
 3. RESOLVED
    - Results calculated

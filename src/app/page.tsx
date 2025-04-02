@@ -1,30 +1,52 @@
-"use client";
-
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { format } from "date-fns";
+import Image from "next/image";
+import { Clock, Trophy, Users } from "lucide-react";
 
-export default function Home() {
+async function getUpcomingMatches() {
+  const now = new Date();
+  const matches = await prisma.match.findMany({
+    where: {
+      status: "UPCOMING",
+      date: {
+        gte: now,
+      },
+    },
+    include: {
+      homeTeam: true,
+      awayTeam: true,
+    },
+    orderBy: {
+      date: "asc",
+    },
+    take: 3,
+  });
+  return matches;
+}
+
+export default async function Home() {
+  const matches = await getUpcomingMatches();
+
   return (
     <div className="space-y-12">
       {/* Hero Section */}
       <section className="text-center space-y-6">
         <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-          IPL 2025 Predictions Market
+          IPL 2024 Predictions Market
         </h1>
         <p className="text-lg leading-8 text-gray-600 max-w-2xl mx-auto">
-          Predict match outcomes, trade positions, and compete with other fans in the most exciting cricket tournament of the year.
+          Predict match outcomes and compete with other fans in the most exciting cricket tournament of the year.
         </p>
         <div className="flex items-center justify-center gap-4">
           <Link
-            href="/markets"
-            className="rounded-md bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            href="/matches"
+            className="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           >
-            View Markets
+            View Matches
           </Link>
-          <Link
-            href="/how-it-works"
-            className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-          >
-            How it Works
+          <Link href="/leaderboard" className="text-sm font-semibold leading-6 text-gray-900">
+            View Leaderboard <span aria-hidden="true">→</span>
           </Link>
         </div>
       </section>
@@ -35,12 +57,6 @@ export default function Home() {
           <h3 className="text-lg font-semibold leading-8 text-gray-900">Predict Match Outcomes</h3>
           <p className="mt-4 text-base leading-7 text-gray-600">
             Make predictions on match results, player performances, and team statistics.
-          </p>
-        </div>
-        <div className="rounded-2xl border border-gray-200 p-8">
-          <h3 className="text-lg font-semibold leading-8 text-gray-900">Trade Positions</h3>
-          <p className="mt-4 text-base leading-7 text-gray-600">
-            Buy and sell prediction positions to maximize your potential returns.
           </p>
         </div>
         <div className="rounded-2xl border border-gray-200 p-8">
@@ -55,12 +71,12 @@ export default function Home() {
       <section className="space-y-6">
         <h2 className="text-2xl font-bold tracking-tight text-gray-900">Upcoming Matches</h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((match) => (
-            <div key={match} className="rounded-lg border border-gray-200 p-6">
+          {matches.map((match) => (
+            <div key={match.id} className="rounded-lg border border-gray-200 p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-900">Match {match}</p>
-                  <p className="text-sm text-gray-500">March 26, 2025</p>
+                  <p className="text-sm font-medium text-gray-900">{match.homeTeam.name} vs {match.awayTeam.name}</p>
+                  <p className="text-sm text-gray-500">{format(new Date(match.date), "MMMM d, yyyy")}</p>
                 </div>
                 <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                   Open
@@ -68,12 +84,30 @@ export default function Home() {
               </div>
               <div className="mt-4 flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="text-sm font-medium text-gray-900">Team A</div>
+                  <div className="flex items-center space-x-2">
+                    <Image
+                      src={match.homeTeam.logo || ""}
+                      alt={match.homeTeam.name}
+                      width={24}
+                      height={24}
+                      className="rounded-full"
+                    />
+                    <div className="text-sm font-medium text-gray-900">{match.homeTeam.shortName}</div>
+                  </div>
                   <div className="text-sm text-gray-500">vs</div>
-                  <div className="text-sm font-medium text-gray-900">Team B</div>
+                  <div className="flex items-center space-x-2">
+                    <Image
+                      src={match.awayTeam.logo || ""}
+                      alt={match.awayTeam.name}
+                      width={24}
+                      height={24}
+                      className="rounded-full"
+                    />
+                    <div className="text-sm font-medium text-gray-900">{match.awayTeam.shortName}</div>
+                  </div>
                 </div>
                 <Link
-                  href={`/markets/match-${match}`}
+                  href={`/matches/${match.id}`}
                   className="text-sm font-medium text-blue-600 hover:text-blue-500"
                 >
                   Predict →
@@ -94,9 +128,12 @@ export default function Home() {
             Connect your wallet and start making predictions on your favorite IPL matches.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            <button className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-blue-600 shadow-sm hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-              Connect Wallet
-            </button>
+            <Link
+              href="/auth/signin"
+              className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-blue-600 shadow-sm hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Sign In
+            </Link>
             <Link
               href="/how-it-works"
               className="text-sm font-semibold leading-6 text-white"
@@ -106,6 +143,38 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+        <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
+          <div className="flex flex-col">
+            <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-gray-900">
+              <Clock className="h-5 w-5 flex-none text-indigo-600" aria-hidden="true" />
+              Real-time Updates
+            </dt>
+            <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600">
+              <p className="flex-auto">Get instant updates on match progress and market results.</p>
+            </dd>
+          </div>
+          <div className="flex flex-col">
+            <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-gray-900">
+              <Trophy className="h-5 w-5 flex-none text-indigo-600" aria-hidden="true" />
+              Compete & Win
+            </dt>
+            <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600">
+              <p className="flex-auto">Compete with other fans and climb the leaderboard with accurate predictions.</p>
+            </dd>
+          </div>
+          <div className="flex flex-col">
+            <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-gray-900">
+              <Users className="h-5 w-5 flex-none text-indigo-600" aria-hidden="true" />
+              Community
+            </dt>
+            <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600">
+              <p className="flex-auto">Join a community of cricket enthusiasts and share your predictions.</p>
+            </dd>
+          </div>
+        </dl>
+      </div>
     </div>
   );
 }

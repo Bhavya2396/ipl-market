@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { MarketType, PredictionStatus } from "@prisma/client";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -12,40 +13,74 @@ interface MarketTypeStats {
   successRate?: number;
 }
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const session = await auth();
-
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
+    // Get all users with their predictions and points
     const users = await prisma.user.findMany({
-      orderBy: {
-        totalPoints: "desc",
-      },
       select: {
         id: true,
         name: true,
-        image: true,
-        totalPoints: true,
-        totalPredictions: true,
-        correctPredictions: true,
-        successRate: true,
-        rank: true,
+        email: true,
+        createdAt: true,
+        predictions: {
+          select: {
+            market: {
+              select: {
+                type: true,
+              },
+            },
+            isCorrect: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 
-    return NextResponse.json(users);
+    // Calculate points for each user
+    const leaderboard = users.map(user => {
+      const points = user.predictions.reduce((total, prediction) => {
+        if (!prediction.isCorrect) return total;
+        
+        // Award points based on market type
+        switch (prediction.market.type) {
+          case 'MATCH_WINNER':
+            return total + 10;
+          case 'HIGHEST_RUN_SCORER':
+            return total + 15;
+          case 'HIGHEST_WICKET_TAKER':
+            return total + 15;
+          case 'TWO_HUNDRED_RUNS_BARRIER':
+            return total + 5;
+          default:
+            return total;
+        }
+      }, 0);
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        createdAt: user.createdAt,
+        points,
+        totalPredictions: user.predictions.length,
+        correctPredictions: user.predictions.filter(p => p.isCorrect).length,
+      };
+    });
+
+    // Sort by points (descending) and then by account creation date (newest first)
+    leaderboard.sort((a, b) => {
+      if (b.points !== a.points) {
+        return b.points - a.points;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    return NextResponse.json({ leaderboard });
   } catch (error) {
-    console.error("Leaderboard error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch leaderboard" },
-      { status: 500 }
-    );
+    console.error("Error fetching leaderboard:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 

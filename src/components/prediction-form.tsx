@@ -1,41 +1,60 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-
-interface MarketOption {
-  id: string;
-  label: string;
-  odds: number;
-}
-
-interface Market {
-  id: string;
-  type: string;
-  title: string;
-  description: string;
-  options: MarketOption[];
-}
+import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 
 interface PredictionFormProps {
-  market: Market;
   matchId: string;
+  marketId: string;
+  marketTitle: string;
+  marketDescription: string;
+  marketType: string;
+  points: number;
+  options: {
+    id: string;
+    label: string;
+  }[];
+  matchStartTime: Date;
 }
 
-export function PredictionForm({ market, matchId }: PredictionFormProps) {
+export function PredictionForm({
+  matchId,
+  marketId,
+  marketTitle,
+  marketDescription,
+  marketType,
+  points,
+  options,
+  matchStartTime,
+}: PredictionFormProps) {
+  const { data: session } = useSession();
   const router = useRouter();
   const [selectedOption, setSelectedOption] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!session) {
+      toast.error("Please sign in to make predictions");
+      router.push("/auth/signin");
+      return;
+    }
+
     if (!selectedOption) {
-      toast.error("Please select a prediction option");
+      toast.error("Please select an option");
+      return;
+    }
+
+    // Check if match starts in less than 1 hour
+    const oneHourBeforeMatch = new Date(matchStartTime.getTime() - 60 * 60 * 1000);
+    if (new Date() >= oneHourBeforeMatch) {
+      toast.error("Market is closed (1 hour before match)");
       return;
     }
 
@@ -47,58 +66,58 @@ export function PredictionForm({ market, matchId }: PredictionFormProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          marketId: market.id,
           matchId,
+          marketId,
           optionId: selectedOption,
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to submit prediction");
+        throw new Error(data.error || "Failed to place prediction");
       }
 
-      toast.success("Prediction submitted successfully!");
-      router.push("/predictions");
+      toast.success("Prediction placed successfully!");
+      setSelectedOption("");
+      router.refresh();
     } catch (error) {
-      toast.error("Failed to submit prediction");
-      console.error("Prediction submission error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to place prediction");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{market.title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <p className="text-sm text-gray-500">{market.description}</p>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">{marketTitle}</h3>
+          <Badge variant="secondary">{points} points</Badge>
+        </div>
+        <p className="text-sm text-gray-500">{marketDescription}</p>
+      </div>
+
+      <RadioGroup
+        value={selectedOption}
+        onValueChange={setSelectedOption}
+        className="space-y-4"
+      >
+        {options.map((option) => (
+          <div key={option.id} className="flex items-center space-x-2">
+            <RadioGroupItem value={option.id} id={option.id} />
+            <Label htmlFor={option.id}>{option.label}</Label>
           </div>
-          <RadioGroup
-            value={selectedOption}
-            onValueChange={setSelectedOption}
-            className="space-y-4"
-          >
-            {market.options.map((option) => (
-              <div key={option.id} className="flex items-center space-x-2">
-                <RadioGroupItem value={option.id} id={option.id} />
-                <Label htmlFor={option.id} className="flex justify-between w-full">
-                  <span>{option.label}</span>
-                  <span className="text-sm text-gray-500">
-                    Odds: {option.odds.toFixed(2)}
-                  </span>
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Submit Prediction"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        ))}
+      </RadioGroup>
+
+      <Button
+        type="submit"
+        disabled={isSubmitting || !selectedOption}
+        className="w-full"
+      >
+        {isSubmitting ? "Placing Prediction..." : "Place Prediction"}
+      </Button>
+    </form>
   );
 } 

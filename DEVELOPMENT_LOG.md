@@ -18,8 +18,8 @@ Created Prisma schema with the following models:
 
 1. **User Model** ✅
    - Tracks user information and prediction statistics
-   - Fields: walletAddress, username, totalPoints, successRate, rank
-   - Indexes: walletAddress, rank
+   - Fields: email, name, image (from Google), totalPoints, successRate, rank
+   - Indexes: email, rank
 
 2. **Team Model** ✅
    - Stores IPL team information
@@ -78,7 +78,7 @@ Added the following optimizations:
    - Required fields marked appropriately
 
 3. **Performance Indexes** ✅
-   - User: walletAddress, rank
+   - User: email, rank
    - Team: name
    - Player: teamId, name
    - Match: date, status, homeTeamId, awayTeamId
@@ -88,11 +88,11 @@ Added the following optimizations:
 ### Phase 2: Core Features Development (March 2024)
 
 #### 2.1 Authentication System ✅
-- Implemented NextAuth.js with wallet integration
+- Implemented NextAuth.js with Google OAuth
 - Added protected routes with middleware
 - Created authentication provider and hooks
 - Added user session management
-- Implemented sign-in page with MetaMask
+- Implemented sign-in page with Google
 
 #### 2.2 Match Management System ✅
 - Created match listing with filtering
@@ -101,6 +101,7 @@ Added the following optimizations:
 - Created responsive grid layout
 - Added loading and error states
 - Implemented match API routes
+- Added current day match filtering
 
 #### 2.3 Market Management System ✅
 - Created market card component
@@ -109,6 +110,7 @@ Added the following optimizations:
 - Created market options display
 - Implemented market API routes
 - Added type-safe implementation
+- Added auto-close 1 hour before match
 
 #### 2.4 Testing Infrastructure ✅
 - Set up Jest for unit testing
@@ -163,4 +165,6 @@ Added the following optimizations:
 - Deployed on Vercel
 - Using shadcn/ui for components
 - Testing with Jest and Cypress
-- TypeScript for type safety 
+- TypeScript for type safety
+- Google OAuth for authentication
+- No wallet integration required 

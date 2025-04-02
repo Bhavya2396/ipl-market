@@ -6,11 +6,11 @@ The IPL Market is a prediction platform for IPL 2025 matches where users can mak
 ## Core Features & Implementation Status
 
 ### 1. Authentication System ✅
-- [x] Wallet-based authentication with NextAuth.js
+- [x] Google OAuth authentication
 - [x] Protected routes with middleware
 - [x] User session management
 - [x] Profile management
-- [x] MetaMask integration
+- [x] No wallet integration required
 
 ### 2. Match Management System ✅
 - [x] Match listing and filtering
@@ -18,6 +18,7 @@ The IPL Market is a prediction platform for IPL 2025 matches where users can mak
 - [x] Team and player information
 - [x] Venue and timing details
 - [x] Real-time updates
+- [x] Only show current day's matches
 
 ### 3. Prediction Markets ✅
 - [x] Match Winner predictions
@@ -25,6 +26,7 @@ The IPL Market is a prediction platform for IPL 2025 matches where users can mak
 - [x] Highest Wicket Taker predictions
 - [x] 200 Runs Barrier predictions
 - [x] Market status management
+- [x] Auto-close 1 hour before match
 
 ### 4. Prediction System ✅
 - [x] User prediction submission
@@ -32,11 +34,11 @@ The IPL Market is a prediction platform for IPL 2025 matches where users can mak
 - [x] Prediction history
 - [x] Performance tracking
 - [x] Status updates
+- [x] One prediction per market per match
 
 ### 5. Leaderboard System ✅
 - [x] Global rankings
 - [x] Time-based rankings
-- [x] Category rankings
 - [x] User statistics
 - [x] Achievement tracking
 
@@ -233,7 +235,7 @@ The IPL Market is a prediction platform for IPL 2025 matches where users can mak
 - Tailwind CSS + shadcn/ui
 - PostgreSQL (Neon)
 - Prisma ORM
-- NextAuth.js
+- NextAuth.js (Google OAuth)
 - Jest + Cypress
 - Vercel
 

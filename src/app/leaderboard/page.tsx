@@ -2,107 +2,77 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
+import { useSession } from "next-auth/react";
 
 interface UserStats {
   id: string;
-  username: string;
-  totalPoints: number;
-  successRate: number;
-  rank: number;
-  recentStats: {
-    predictions: number;
-    won: number;
-    successRate: number;
-    points: number;
-  };
-}
-
-interface UserPosition {
+  name: string;
   rank: number;
   totalPoints: number;
+  totalPredictions: number;
+  correctPredictions: number;
   successRate: number;
 }
 
 export default function LeaderboardPage() {
-  const [users, setUsers] = useState<UserStats[]>([]);
-  const [userPosition, setUserPosition] = useState<UserPosition | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [timeRange, setTimeRange] = useState("all");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const { data: session } = useSession();
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [leaderboard, setLeaderboard] = useState<UserStats[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchLeaderboard();
-  }, [timeRange, page]);
-
-  const fetchLeaderboard = async () => {
-    try {
-      const response = await fetch(
-        `/api/leaderboard?timeRange=${timeRange}&page=${page}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch leaderboard");
+    async function fetchLeaderboard() {
+      try {
+        const response = await fetch("/api/leaderboard");
+        const data = await response.json();
+        setLeaderboard(data);
+        
+        if (session?.user) {
+          const userData = data.find((user: UserStats) => user.id === session.user.id);
+          setUserStats(userData || null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch leaderboard:", error);
+      } finally {
+        setIsLoading(false);
       }
-      const data = await response.json();
-      setUsers(data.users);
-      setUserPosition(data.userPosition);
-      setTotalPages(data.pagination.totalPages);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
     }
-  };
 
-  if (loading) {
+    fetchLeaderboard();
+  }, [session]);
+
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
   return (
-    <div className="container py-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Leaderboard</h1>
-        <p className="mt-2 text-lg text-gray-600">
-          See how you stack up against other predictors
-        </p>
-      </div>
-
-      {/* Time Range Tabs */}
-      <Tabs value={timeRange} onValueChange={setTimeRange} className="mb-8">
-        <TabsList>
-          <TabsTrigger value="all">All Time</TabsTrigger>
-          <TabsTrigger value="week">This Week</TabsTrigger>
-          <TabsTrigger value="month">This Month</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      {/* User Position Card */}
-      {userPosition && (
-        <Card>
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-8">Leaderboard</h1>
+      
+      {/* User Stats Card */}
+      {userStats && (
+        <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Your Position</CardTitle>
+            <CardTitle>Your Stats</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-              <div className="flex items-center space-x-4">
-                <Badge variant="outline" className="w-8 h-8 flex items-center justify-center">
-                  {userPosition.rank}
-                </Badge>
-                <div>
-                  <p className="font-medium">Your Position</p>
-                  <p className="text-sm text-gray-500">
-                    {userPosition.totalPoints} total points
-                  </p>
-                </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{userStats.rank}</div>
+                <p className="text-sm text-gray-500">Rank</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">{userStats.totalPoints}</div>
+                <p className="text-sm text-gray-500">Total Points</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">{userStats.totalPredictions}</div>
+                <p className="text-sm text-gray-500">Predictions</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">{userStats.successRate}%</div>
+                <p className="text-sm text-gray-500">Success Rate</p>
               </div>
             </div>
           </CardContent>
@@ -112,54 +82,30 @@ export default function LeaderboardPage() {
       {/* Leaderboard Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Top Performers</CardTitle>
+          <CardTitle>Global Rankings</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {users.map((user, index) => (
-              <div
-                key={user.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
-              >
-                <div className="flex items-center space-x-4">
-                  <Badge variant="outline" className="w-8 h-8 flex items-center justify-center">
-                    {index + 1}
-                  </Badge>
-                  <div>
-                    <p className="font-medium">{user.username}</p>
-                    <p className="text-sm text-gray-500">
-                      {user.recentStats.predictions} predictions |{" "}
-                      {user.recentStats.won} won |{" "}
-                      {user.recentStats.successRate}% success rate
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold">{user.totalPoints} points</p>
-                  <p className="text-sm text-gray-500">
-                    +{user.recentStats.points} this period
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          <div className="flex justify-center space-x-2 mt-8">
-            <Button
-              variant="outline"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-            >
-              Next
-            </Button>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2">Rank</th>
+                  <th className="text-left py-2">User</th>
+                  <th className="text-right py-2">Points</th>
+                  <th className="text-right py-2">Success Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leaderboard.map((user, index) => (
+                  <tr key={user.id} className="border-b">
+                    <td className="py-2">{index + 1}</td>
+                    <td className="py-2">{user.name}</td>
+                    <td className="text-right py-2">{user.totalPoints}</td>
+                    <td className="text-right py-2">{user.successRate}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>
