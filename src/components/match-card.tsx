@@ -98,7 +98,7 @@ export function MatchCard({ match }: MatchCardProps) {
 
         {isAuthenticated && !isCompleted && (
           <div className="flex justify-end">
-            <Link href={`/matches/${match.id}/predictions`}>
+            <Link href={`/matches/${match.id}/predict`}>
               <Button variant="outline" size="sm">
                 {isLive ? "Update Prediction" : "Make Prediction"}
               </Button>

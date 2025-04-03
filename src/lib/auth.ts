@@ -27,4 +27,4 @@ export const handler = NextAuth({
   },
 });
 
-export default handler; 
+export const { auth, signIn, signOut } = handler; 

@@ -84,6 +84,7 @@ model Player {
   teamId        String
   statistics    PlayerStats?
   performances  PlayerPerformance[]
+  marketOptions MarketOption[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -188,6 +189,8 @@ model Market {
   title         String
   description   String
   status        MarketStatus @default(ACTIVE)
+  opensAt       DateTime     // Market opens at 12 AM IST on match day
+  closesAt      DateTime     // Market closes 1 hour before match start
   options       MarketOption[]
   predictions   Prediction[]
   createdAt     DateTime     @default(now())
@@ -196,6 +199,8 @@ model Market {
   @@unique([matchId, type])
   @@index([matchId])
   @@index([status])
+  @@index([opensAt])
+  @@index([closesAt])
 }
 
 model MarketOption {
@@ -203,11 +208,14 @@ model MarketOption {
   marketId      String
   market        Market       @relation(fields: [marketId], references: [id], onDelete: Cascade)
   label         String
+  playerId      String?      // For player-specific options (run scorer, wicket taker)
+  player        Player?      @relation(fields: [playerId], references: [id], onDelete: SetNull)
   predictions   Prediction[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
   @@index([marketId])
+  @@index([playerId])
 }
 
 model Prediction {
