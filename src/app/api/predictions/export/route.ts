@@ -12,26 +12,22 @@ export async function GET() {
     // Get all upcoming matches
     const matches = await prisma.match.findMany({
       where: {
-        startTime: {
+        date: {
           gt: new Date(),
         },
-        status: "SCHEDULED",
+        status: "UPCOMING",
       },
       include: {
         homeTeam: true,
         awayTeam: true,
-        venue: true,
         markets: {
-          where: {
-            status: "OPEN",
-          },
           include: {
-            type: true,
+            options: true,
           },
         },
       },
       orderBy: {
-        startTime: "asc",
+        date: "asc",
       },
     });
 
@@ -39,14 +35,18 @@ export async function GET() {
     const exportData = matches.map((match) => ({
       matchId: match.id,
       matchTitle: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
-      startTime: match.startTime,
-      venue: match.venue.name,
+      date: match.date,
+      venue: match.venue,
+      city: match.city,
       markets: match.markets.map((market) => ({
         marketId: market.id,
-        type: market.type.name,
+        type: market.type,
+        title: market.title,
         description: market.description,
-        options: market.options,
-        odds: market.odds,
+        options: market.options.map(option => ({
+          id: option.id,
+          label: option.label,
+        })),
       })),
     }));
 
